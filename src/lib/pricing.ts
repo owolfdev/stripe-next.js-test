@@ -1,6 +1,7 @@
 // Enhanced pricing utilities for better plan management
 import { stripe } from "./stripe";
 import { config } from "./config";
+import Stripe from "stripe";
 
 export interface PlanDetails {
   id: string;
@@ -34,7 +35,7 @@ export async function getPlans(): Promise<PlanDetails[]> {
 
     // Filter out test products and unwanted plans
     const filteredPrices = prices.data.filter((price) => {
-      const product = price.product as any;
+      const product = price.product as Stripe.Product;
       const productName = product.name?.toLowerCase() || "";
 
       // Filter out test products
@@ -47,7 +48,7 @@ export async function getPlans(): Promise<PlanDetails[]> {
     });
 
     const plans: PlanDetails[] = filteredPrices.map((price) => {
-      const product = price.product as any;
+      const product = price.product as Stripe.Product;
 
       return {
         id: price.id,

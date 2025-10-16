@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-interface Session {
-  id: string;
-}
+// Session interface removed as it's not being used
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();

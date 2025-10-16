@@ -50,7 +50,7 @@ async function getUserSubscription() {
       console.log("User subscription:", {
         id: subscriptions.data[0].id,
         status: subscriptions.data[0].status,
-        customer: (subscriptions.data[0].customer as any)?.id,
+        customer: (subscriptions.data[0].customer as Stripe.Customer)?.id,
         priceId: subscriptions.data[0].items.data[0]?.price?.id,
       });
     }

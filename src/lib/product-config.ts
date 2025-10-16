@@ -1,5 +1,6 @@
 // Product configuration for controlling which plans appear in your app
 import { config } from "./config";
+import Stripe from "stripe";
 
 export interface ProductFilter {
   // Metadata-based filtering
@@ -66,8 +67,8 @@ export function getCurrentProductConfig(): ProductFilter {
 }
 
 export function shouldShowProduct(
-  product: any,
-  price: any,
+  product: Stripe.Product,
+  price: Stripe.Price,
   filter: ProductFilter
 ): boolean {
   const productName = product.name?.toLowerCase() || "";
@@ -139,7 +140,7 @@ export function shouldShowProduct(
 }
 
 // Utility function to get product display order
-export function getProductSortOrder(product: any): number {
+export function getProductSortOrder(product: Stripe.Product): number {
   const metadata = product.metadata || {};
   const sortOrder = parseInt(metadata.sort_order || "999");
   const isPopular = metadata.popular === "true";
