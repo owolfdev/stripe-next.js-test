@@ -2,18 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+interface Session {
+  id: string;
+}
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (sessionId) {
       // In a real app, you'd fetch the session details from your backend
       // For now, we'll just show a success message
-      setSession({ id: sessionId });
       setLoading(false);
     }
   }, [sessionId]);
@@ -60,19 +63,19 @@ export default function SuccessPage() {
         </div>
 
         <div className="mt-8 space-y-4">
-          <a
+          <Link
             href="/dashboard"
             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Go to Dashboard
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/"
             className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             Back to Plans
-          </a>
+          </Link>
         </div>
       </div>
     </div>

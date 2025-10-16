@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getUserStripeMapping } from "@/lib/supabase/database";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import Link from "next/link";
 
 async function getUserSubscription() {
   try {
@@ -66,7 +67,6 @@ export default async function DashboardPage() {
   const supabase = await createClient();
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
 
   const subscription = await getUserSubscription();
@@ -80,22 +80,22 @@ export default async function DashboardPage() {
               No Active Subscription
             </h1>
             <p className="text-gray-600 mb-4">
-              You don't have any active subscriptions. Create a subscription to
-              see your dashboard.
+              You don&apos;t have any active subscriptions. Create a
+              subscription to see your dashboard.
             </p>
-            <a
+            <Link
               href="/"
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
             >
               View Plans
-            </a>
+            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  const customer = subscription.customer as any;
+  const customer = subscription.customer as Stripe.Customer;
   const price = subscription.items.data[0]?.price;
   const amount = (price?.unit_amount || 0) / 100;
   const currency = price?.currency?.toUpperCase() || "USD";
@@ -248,9 +248,12 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <a href="/" className="text-blue-600 hover:text-blue-500 font-medium">
+          <Link
+            href="/"
+            className="text-blue-600 hover:text-blue-500 font-medium"
+          >
             ← Back to Plans
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -3,13 +3,41 @@ import DebugInfo from "@/components/DebugInfo";
 import { AuthButton } from "@/components/auth-button";
 import { stripe } from "@/lib/stripe";
 import { config } from "@/lib/config";
+import {
+  getCurrentProductConfig,
+  shouldShowProduct,
+  getProductSortOrder,
+} from "@/lib/product-config";
 
 async function getPrices() {
   try {
     const prices = await stripe.prices.list({
       expand: ["data.product"],
+      active: true, // Only get active prices
     });
-    return prices.data;
+
+    // Get the current product configuration based on environment
+    const productFilter = getCurrentProductConfig();
+
+    // Filter products using the advanced configuration
+    const filteredPrices = prices.data.filter((price) => {
+      const product = price.product as Stripe.Product;
+      return shouldShowProduct(product, price, productFilter);
+    });
+
+    // Sort products by popularity and sort order
+    filteredPrices.sort((a, b) => {
+      const productA = a.product as Stripe.Product;
+      const productB = b.product as Stripe.Product;
+      return getProductSortOrder(productA) - getProductSortOrder(productB);
+    });
+
+    console.log(
+      `Fetched ${prices.data.length} total prices, showing ${filteredPrices.length} filtered prices`
+    );
+    console.log("Current filter config:", productFilter);
+
+    return filteredPrices;
   } catch (error) {
     console.error("Error fetching prices:", error);
     return [];
@@ -38,14 +66,20 @@ export default async function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {prices.map((price) => {
-            const product = price.product as any;
+            const product = price.product as Stripe.Product;
             const amount = (price.unit_amount || 0) / 100;
             const currency = price.currency?.toUpperCase() || "USD";
+
+            // Get plan name from price metadata, fallback to product name
+            const planName =
+              price.metadata?.plan_name || product.name || "Plan";
+            const isPopular =
+              price.metadata?.popular === "true" || product.name === "Pro Plan";
 
             return (
               <SubscriptionCard
                 key={price.id}
-                title={product.name || "Plan"}
+                title={planName}
                 price={`${currency} ${amount}`}
                 description={[
                   "Unlimited access to premium features",
@@ -55,7 +89,7 @@ export default async function Home() {
                   "API access with higher limits",
                 ]}
                 priceId={price.id}
-                popular={product.name === "Pro Plan"}
+                popular={isPopular}
               />
             );
           })}

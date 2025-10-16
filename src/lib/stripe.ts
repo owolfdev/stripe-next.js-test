@@ -37,6 +37,7 @@ export const getStripe = () => {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { loadStripe } = require("@stripe/stripe-js");
   return loadStripe(config.stripe.publishableKey);
 };
