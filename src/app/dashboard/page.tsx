@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserStripeMapping } from "@/lib/supabase/database";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import Link from "next/link";
+import Stripe from "stripe";
 
 async function getUserSubscription() {
   try {
