@@ -179,8 +179,8 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Next billing:</span>{" "}
-                    {subscription.current_period_end
-                      ? formatDate(subscription.current_period_end)
+                    {(subscription as any).current_period_end
+                      ? formatDate((subscription as any).current_period_end)
                       : "N/A"}
                   </p>
                   <p className="text-sm text-gray-600">
@@ -227,8 +227,8 @@ export default async function DashboardPage() {
                       Subscription created
                     </span>
                     <span className="text-sm text-gray-500">
-                      {subscription.created
-                        ? formatDate(subscription.created)
+                      {(subscription as any).created
+                        ? formatDate((subscription as any).created)
                         : "N/A"}
                     </span>
                   </div>
@@ -237,8 +237,8 @@ export default async function DashboardPage() {
                       Current period started
                     </span>
                     <span className="text-sm text-gray-500">
-                      {subscription.current_period_start
-                        ? formatDate(subscription.current_period_start)
+                      {(subscription as any).current_period_start
+                        ? formatDate((subscription as any).current_period_start)
                         : "N/A"}
                     </span>
                   </div>
