@@ -5,7 +5,7 @@ import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import Link from "next/link";
 import Stripe from "stripe";
 
-async function getUserSubscription() {
+async function getUserSubscription(): Promise<Stripe.Subscription | null> {
   try {
     // Get the authenticated user
     const supabase = await createClient();
