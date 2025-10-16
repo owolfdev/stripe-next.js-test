@@ -5,6 +5,9 @@ import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
 import Link from "next/link";
 import Stripe from "stripe";
 
+// Force dynamic rendering to avoid Supabase issues during build
+export const dynamic = 'force-dynamic';
+
 async function getUserSubscription(): Promise<Stripe.Subscription | null> {
   try {
     // Get the authenticated user

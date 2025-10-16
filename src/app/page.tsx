@@ -10,6 +10,9 @@ import {
 } from "@/lib/product-config";
 import Stripe from "stripe";
 
+// Force dynamic rendering to avoid Supabase issues during build
+export const dynamic = 'force-dynamic';
+
 async function getPrices() {
   try {
     const prices = await stripe.prices.list({
