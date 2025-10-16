@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { config } from "@/lib/config";
 import { createClient } from "@/lib/supabase/server";
 import {
   getUserStripeMapping,
@@ -60,10 +61,7 @@ export async function POST(request: NextRequest) {
       console.log("Stored user-stripe mapping in database");
     }
 
-    console.log(
-      "Stripe secret key available:",
-      !!process.env.STRIPE_SECRET_KEY_TEST
-    );
+    console.log("Stripe secret key available:", !!config.stripe.secretKey);
 
     // Create checkout session
     console.log("Creating Stripe checkout session...");

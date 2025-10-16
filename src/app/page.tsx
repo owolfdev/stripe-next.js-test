@@ -2,6 +2,7 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import DebugInfo from "@/components/DebugInfo";
 import { AuthButton } from "@/components/auth-button";
 import { stripe } from "@/lib/stripe";
+import { config } from "@/lib/config";
 
 async function getPrices() {
   try {
@@ -73,8 +74,7 @@ export default async function Home() {
                   "API access with higher limits",
                 ]}
                 priceId={
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PREMIUM_TEST ||
-                  "price_premium_placeholder"
+                  config.stripe.priceIds.premium || "price_premium_placeholder"
                 }
               />
 
@@ -89,10 +89,7 @@ export default async function Home() {
                   "24/7 phone support",
                   "Advanced security features",
                 ]}
-                priceId={
-                  process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_TEST ||
-                  "price_pro_placeholder"
-                }
+                priceId={config.stripe.priceIds.pro || "price_pro_placeholder"}
                 popular={true}
               />
             </>

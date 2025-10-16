@@ -1,10 +1,23 @@
 import Stripe from "stripe";
+import { config, validateConfig } from "./config";
 
-if (!process.env.STRIPE_SECRET_KEY_TEST) {
-  throw new Error("STRIPE_SECRET_KEY_TEST is not set in environment variables");
+// Validate configuration on startup
+try {
+  validateConfig();
+} catch (error) {
+  console.error("❌ Configuration validation failed:", error);
+  throw error;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY_TEST, {
+if (!config.stripe.secretKey) {
+  throw new Error(
+    `Stripe secret key is not set. Please set ${
+      config.isProduction ? "STRIPE_SECRET_KEY" : "STRIPE_SECRET_KEY_TEST"
+    } in your environment variables.`
+  );
+}
+
+export const stripe = new Stripe(config.stripe.secretKey, {
   apiVersion: "2024-12-18.acacia",
   typescript: true,
 });
@@ -14,12 +27,16 @@ export const getStripe = () => {
     return null;
   }
 
-  if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST) {
+  if (!config.stripe.publishableKey) {
     throw new Error(
-      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST is not set in environment variables"
+      `Stripe publishable key is not set. Please set ${
+        config.isProduction
+          ? "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+          : "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST"
+      } in your environment variables.`
     );
   }
 
   const { loadStripe } = require("@stripe/stripe-js");
-  return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST);
+  return loadStripe(config.stripe.publishableKey);
 };

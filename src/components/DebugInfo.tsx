@@ -1,12 +1,16 @@
 "use client";
 
+import { config } from "@/lib/config";
+
 export default function DebugInfo() {
-  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST;
-  const premiumPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PREMIUM_TEST;
-  const proPriceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO_TEST;
+  const stripeKey = config.stripe.publishableKey;
+  const premiumPriceId = config.stripe.priceIds.premium;
+  const proPriceId = config.stripe.priceIds.pro;
+  const environment = config.isProduction ? "PRODUCTION" : "TEST";
 
   // Debug: Log all environment variables
   console.log("Environment variables:", {
+    environment,
     stripeKey: stripeKey ? "✅ Set" : "❌ Missing",
     premiumPriceId: premiumPriceId ? "✅ Set" : "❌ Missing",
     proPriceId: proPriceId ? "✅ Set" : "❌ Missing",
@@ -18,6 +22,12 @@ export default function DebugInfo() {
         Debug Info:
       </h3>
       <div className="text-sm space-y-1 text-gray-700 dark:text-gray-300">
+        <p>
+          <strong className="text-gray-900 dark:text-gray-100">
+            Environment:
+          </strong>{" "}
+          {environment}
+        </p>
         <p>
           <strong className="text-gray-900 dark:text-gray-100">
             Stripe Key:
