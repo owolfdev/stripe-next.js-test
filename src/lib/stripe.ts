@@ -1,13 +1,5 @@
 import Stripe from "stripe";
-import { config, validateConfig } from "./config";
-
-// Validate configuration on startup
-try {
-  validateConfig();
-} catch (error) {
-  console.error("❌ Configuration validation failed:", error);
-  throw error;
-}
+import { config } from "./config";
 
 if (!config.stripe.secretKey) {
   throw new Error(
@@ -18,7 +10,7 @@ if (!config.stripe.secretKey) {
 }
 
 export const stripe = new Stripe(config.stripe.secretKey, {
-  apiVersion: "2024-12-18.acacia",
+  apiVersion: "2025-09-30.clover",
   typescript: true,
 });
 

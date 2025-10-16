@@ -8,6 +8,7 @@ import {
   shouldShowProduct,
   getProductSortOrder,
 } from "@/lib/product-config";
+import Stripe from "stripe";
 
 async function getPrices() {
   try {

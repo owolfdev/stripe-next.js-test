@@ -56,13 +56,10 @@ export const productConfigs = {
 export function getCurrentProductConfig(): ProductFilter {
   const environment = config.app.environment;
 
-  switch (environment) {
-    case "production":
-      return productConfigs.production;
-    case "staging":
-      return productConfigs.staging;
-    default:
-      return productConfigs.development;
+  if (environment === "production") {
+    return productConfigs.production;
+  } else {
+    return productConfigs.development;
   }
 }
 

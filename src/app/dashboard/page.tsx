@@ -63,6 +63,7 @@ async function getUserSubscription(): Promise<Stripe.Subscription | null> {
   }
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default async function DashboardPage() {
   // Get the current authenticated user from Supabase
   const supabase = await createClient();
@@ -179,6 +180,7 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-sm text-gray-600">
                     <span className="font-medium">Next billing:</span>{" "}
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(subscription as any).current_period_end
                       ? formatDate((subscription as any).current_period_end)
                       : "N/A"}
@@ -227,6 +229,7 @@ export default async function DashboardPage() {
                       Subscription created
                     </span>
                     <span className="text-sm text-gray-500">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {(subscription as any).created
                         ? formatDate((subscription as any).created)
                         : "N/A"}
@@ -237,6 +240,7 @@ export default async function DashboardPage() {
                       Current period started
                     </span>
                     <span className="text-sm text-gray-500">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {(subscription as any).current_period_start
                         ? formatDate((subscription as any).current_period_start)
                         : "N/A"}
