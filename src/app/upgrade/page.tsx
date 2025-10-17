@@ -29,12 +29,16 @@ async function getCurrentSubscription(userId: string) {
       mapping.stripe_customer_id
     );
 
+    console.log("getCurrentSubscription - About to call Stripe API...");
+    
     const subscriptions = await stripe.subscriptions.list({
       customer: mapping.stripe_customer_id,
       status: "all", // Include all statuses like dashboard
       limit: 1,
       expand: ["data.items.data.price.product"], // Expand to get product details
     });
+
+    console.log("getCurrentSubscription - Stripe API call completed");
 
     console.log(
       "getCurrentSubscription - Found subscriptions:",
@@ -47,14 +51,20 @@ async function getCurrentSubscription(userId: string) {
 
     if (subscriptions.data.length > 0) {
       const subscription = subscriptions.data[0];
-      console.log("getCurrentSubscription - Subscription status:", subscription.status);
+      console.log(
+        "getCurrentSubscription - Subscription status:",
+        subscription.status
+      );
       console.log("getCurrentSubscription - Subscription ID:", subscription.id);
-      
+
       // Only return if status is active
-      if (subscription.status === 'active') {
+      if (subscription.status === "active") {
         return subscription;
       } else {
-        console.log("getCurrentSubscription - Subscription not active, status:", subscription.status);
+        console.log(
+          "getCurrentSubscription - Subscription not active, status:",
+          subscription.status
+        );
         return null;
       }
     }
@@ -62,16 +72,22 @@ async function getCurrentSubscription(userId: string) {
     return null;
   } catch (error) {
     console.error("Error fetching current subscription:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return null;
   }
 }
 
 async function getPrices() {
   try {
+    console.log("getPrices - About to call Stripe API...");
     const prices = await stripe.prices.list({
       expand: ["data.product"],
       active: true,
     });
+    console.log("getPrices - Stripe API call completed, found:", prices.data.length);
 
     const productFilter = getCurrentProductConfig();
     const filteredPrices = prices.data.filter((price) => {
@@ -85,9 +101,14 @@ async function getPrices() {
       return getProductSortOrder(productA) - getProductSortOrder(productB);
     });
 
+    console.log("getPrices - Filtered prices:", filteredPrices.length);
     return filteredPrices;
   } catch (error) {
     console.error("Error fetching prices:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return [];
   }
 }
