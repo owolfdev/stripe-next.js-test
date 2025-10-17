@@ -1,0 +1,172 @@
+"use client";
+
+import { useState } from "react";
+
+interface DonateButtonProps {
+  amount?: number;
+  currency?: string;
+  label?: string;
+  className?: string;
+}
+
+export default function DonateButton({
+  amount = 5,
+  currency = "usd",
+  label = "Donate",
+  className = "",
+}: DonateButtonProps) {
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [customAmount, setCustomAmount] = useState(amount.toString());
+  const [email, setEmail] = useState("");
+
+  const handleDonate = async () => {
+    const donateAmount = parseFloat(customAmount);
+    
+    if (!donateAmount || donateAmount <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/create-donation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: donateAmount,
+          currency,
+          email: email || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create donation");
+      }
+
+      const { clientSecret } = await response.json();
+
+      // Redirect to Stripe Checkout for payment
+      const stripe = (await import("@stripe/stripe-js")).loadStripe(
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST || ""
+      );
+
+      if (!stripe) {
+        throw new Error("Stripe failed to load");
+      }
+
+      const { error } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: {
+            // This will open Stripe's hosted card input
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Payment failed:", error);
+        alert("Payment failed: " + error.message);
+      } else {
+        alert("Thank you for your donation! 🎉");
+        setShowModal(false);
+        setCustomAmount(amount.toString());
+        setEmail("");
+      }
+    } catch (error) {
+      console.error("Donation error:", error);
+      alert("Donation failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickDonate = async (quickAmount: number) => {
+    setCustomAmount(quickAmount.toString());
+    await handleDonate();
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setShowModal(true)}
+        className={`inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors ${className}`}
+      >
+        <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+        {label}
+      </button>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Make a Donation
+            </h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount ({currency.toUpperCase()})
+                </label>
+                <div className="flex space-x-2 mb-3">
+                  {[5, 10, 25, 50].map((quickAmount) => (
+                    <button
+                      key={quickAmount}
+                      onClick={() => handleQuickDonate(quickAmount)}
+                      disabled={loading}
+                      className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors disabled:opacity-50"
+                    >
+                      ${quickAmount}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  min="1"
+                  step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email (optional)
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleDonate}
+                disabled={loading}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+              >
+                {loading ? "Processing..." : `Donate $${customAmount}`}
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
