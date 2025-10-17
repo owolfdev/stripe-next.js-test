@@ -50,6 +50,7 @@ export async function migrateGuestCustomer(
     // Create a new proper customer
     const newCustomer = await stripe.customers.create({
       email: userEmail,
+      name: migratedData.name || userEmail.split('@')[0], // Use name from migrated data or email prefix
       metadata: {
         supabase_user_id: userId,
         migrated_from_guest: guestCustomerId,
@@ -81,6 +82,7 @@ export async function ensureProperCustomer(
     // No existing customer, create a new one
     const customer = await stripe.customers.create({
       email: userEmail,
+      name: userEmail.split('@')[0], // Use email prefix as name
       metadata: {
         supabase_user_id: userId,
       },
@@ -110,6 +112,7 @@ export async function ensureProperCustomer(
     // Customer doesn't exist or there's an error, create a new one
     const customer = await stripe.customers.create({
       email: userEmail,
+      name: userEmail.split('@')[0], // Use email prefix as name
       metadata: {
         supabase_user_id: userId,
       },
