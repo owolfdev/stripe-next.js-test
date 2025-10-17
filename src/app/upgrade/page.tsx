@@ -30,12 +30,12 @@ async function getCurrentSubscription(userId: string) {
     );
 
     console.log("getCurrentSubscription - About to call Stripe API...");
-    
+
     const subscriptions = await stripe.subscriptions.list({
       customer: mapping.stripe_customer_id,
       status: "all", // Include all statuses like dashboard
       limit: 1,
-      expand: ["data.items.data.price.product"], // Expand to get product details
+      expand: ["data.items.data.price"], // Reduce expansion depth to avoid limit
     });
 
     console.log("getCurrentSubscription - Stripe API call completed");
@@ -59,6 +59,19 @@ async function getCurrentSubscription(userId: string) {
 
       // Only return if status is active
       if (subscription.status === "active") {
+        // Fetch product details separately to avoid expansion limit
+        const priceId = subscription.items.data[0]?.price.id;
+        if (priceId) {
+          try {
+            const price = await stripe.prices.retrieve(priceId, {
+              expand: ["product"],
+            });
+            // Replace the price in the subscription with the expanded version
+            subscription.items.data[0].price = price;
+          } catch (error) {
+            console.log("Error fetching price details:", error);
+          }
+        }
         return subscription;
       } else {
         console.log(
@@ -87,12 +100,19 @@ async function getPrices() {
       expand: ["data.product"],
       active: true,
     });
-    console.log("getPrices - Stripe API call completed, found:", prices.data.length);
+    console.log(
+      "getPrices - Stripe API call completed, found:",
+      prices.data.length
+    );
 
     const productFilter = getCurrentProductConfig();
+    console.log("getPrices - Product filter config:", productFilter);
+    
     const filteredPrices = prices.data.filter((price) => {
       const product = price.product as Stripe.Product;
-      return shouldShowProduct(product, price, productFilter);
+      const shouldShow = shouldShowProduct(product, price, productFilter);
+      console.log(`getPrices - Price ${price.id} (${product.name}): ${shouldShow ? 'SHOW' : 'HIDE'}`);
+      return shouldShow;
     });
 
     filteredPrices.sort((a, b) => {
