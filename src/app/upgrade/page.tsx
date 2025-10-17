@@ -18,25 +18,48 @@ async function getCurrentSubscription(userId: string) {
     console.log("getCurrentSubscription - User ID:", userId);
     const mapping = await getUserStripeMapping(userId);
     console.log("getCurrentSubscription - Mapping:", mapping);
-    
+
     if (!mapping) {
       console.log("getCurrentSubscription - No mapping found");
       return null;
     }
 
-    console.log("getCurrentSubscription - Customer ID:", mapping.stripe_customer_id);
-    
+    console.log(
+      "getCurrentSubscription - Customer ID:",
+      mapping.stripe_customer_id
+    );
+
     const subscriptions = await stripe.subscriptions.list({
       customer: mapping.stripe_customer_id,
-      status: "active",
+      status: "all", // Include all statuses like dashboard
       limit: 1,
       expand: ["data.items.data.price.product"], // Expand to get product details
     });
 
-    console.log("getCurrentSubscription - Found subscriptions:", subscriptions.data.length);
-    console.log("getCurrentSubscription - Subscription data:", subscriptions.data);
+    console.log(
+      "getCurrentSubscription - Found subscriptions:",
+      subscriptions.data.length
+    );
+    console.log(
+      "getCurrentSubscription - Subscription data:",
+      subscriptions.data
+    );
 
-    return subscriptions.data.length > 0 ? subscriptions.data[0] : null;
+    if (subscriptions.data.length > 0) {
+      const subscription = subscriptions.data[0];
+      console.log("getCurrentSubscription - Subscription status:", subscription.status);
+      console.log("getCurrentSubscription - Subscription ID:", subscription.id);
+      
+      // Only return if status is active
+      if (subscription.status === 'active') {
+        return subscription;
+      } else {
+        console.log("getCurrentSubscription - Subscription not active, status:", subscription.status);
+        return null;
+      }
+    }
+
+    return null;
   } catch (error) {
     console.error("Error fetching current subscription:", error);
     return null;
@@ -99,7 +122,7 @@ export default async function UpgradePage() {
   }
 
   console.log("UpgradePage - User:", { id: user.id, email: user.email });
-  
+
   const [currentSubscription, prices] = await Promise.all([
     getCurrentSubscription(user.id),
     getPrices(),
@@ -111,7 +134,7 @@ export default async function UpgradePage() {
   const currentPriceId = currentSubscription?.items.data[0]?.price.id;
   const currentPrice = currentSubscription?.items.data[0]?.price;
   const currentProduct = currentPrice?.product as Stripe.Product;
-  
+
   console.log("UpgradePage - Current price ID:", currentPriceId);
   console.log("UpgradePage - Current price:", currentPrice);
   console.log("UpgradePage - Current product:", currentProduct);
