@@ -47,38 +47,17 @@ export default function DonateButton({
         throw new Error("Failed to create donation");
       }
 
-      const { clientSecret } = await response.json();
+      const { url } = await response.json();
 
-      // Redirect to Stripe Checkout for payment
-      const stripe = (await import("@stripe/stripe-js")).loadStripe(
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_TEST || ""
-      );
-
-      if (!stripe) {
-        throw new Error("Stripe failed to load");
-      }
-
-      const { error } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: {
-            // This will open Stripe's hosted card input
-          },
-        },
-      });
-
-      if (error) {
-        console.error("Payment failed:", error);
-        alert("Payment failed: " + error.message);
+      if (url) {
+        // Redirect to Stripe Checkout
+        window.location.href = url;
       } else {
-        alert("Thank you for your donation! 🎉");
-        setShowModal(false);
-        setCustomAmount(amount.toString());
-        setEmail("");
+        throw new Error("No checkout URL received");
       }
     } catch (error) {
       console.error("Donation error:", error);
       alert("Donation failed. Please try again.");
-    } finally {
       setLoading(false);
     }
   };

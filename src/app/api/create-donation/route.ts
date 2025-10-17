@@ -12,20 +12,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a payment intent for the donation
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: currency.toLowerCase(),
+    // Create a Stripe Checkout session for the donation
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: currency.toLowerCase(),
+            product_data: {
+              name: "Donation",
+              description: "Thank you for your support!",
+            },
+            unit_amount: Math.round(amount * 100), // Convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}`,
       metadata: {
         type: "donation",
         email: email || "anonymous",
       },
-      description: `Donation of ${currency.toUpperCase()} ${amount}`,
+      customer_email: email || undefined,
     });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
+      url: session.url,
+      sessionId: session.id,
     });
   } catch (error) {
     console.error("Error creating donation:", error);
