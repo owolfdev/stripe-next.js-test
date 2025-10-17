@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { config } from "@/lib/config";
+import { createUserStripeMapping } from "@/lib/supabase/database";
 import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
@@ -32,7 +33,25 @@ export async function POST(request: NextRequest) {
     case "checkout.session.completed":
       const session = event.data.object as Stripe.Checkout.Session;
       console.log("Checkout session completed:", session.id);
-      // Handle successful checkout
+      
+      // Store user-Stripe mapping if customer exists
+      if (session.customer && session.customer_details?.email) {
+        try {
+          // Get the customer from Stripe to find the Supabase user ID
+          const customer = await stripe.customers.retrieve(session.customer as string);
+          const supabaseUserId = customer.metadata?.supabase_user_id;
+          
+          if (supabaseUserId) {
+            // Create the mapping in our database
+            await createUserStripeMapping(supabaseUserId, session.customer as string);
+            console.log(`Created user-Stripe mapping: ${supabaseUserId} -> ${session.customer}`);
+          } else {
+            console.log("No Supabase user ID found in customer metadata");
+          }
+        } catch (error) {
+          console.error("Error creating user-Stripe mapping:", error);
+        }
+      }
       break;
 
     case "customer.subscription.created":
