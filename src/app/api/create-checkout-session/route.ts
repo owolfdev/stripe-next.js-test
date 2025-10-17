@@ -52,6 +52,27 @@ export async function POST(request: NextRequest) {
     if (existingMapping) {
       customerId = existingMapping.stripe_customer_id;
       console.log("Using existing Stripe customer:", customerId);
+      
+      // Verify the customer exists in the current Stripe mode (test/live)
+      try {
+        await stripe.customers.retrieve(customerId);
+        console.log("Customer verified in current Stripe mode");
+      } catch (error) {
+        console.log("Customer doesn't exist in current Stripe mode, creating new one");
+        // Customer doesn't exist in current mode, create a new one
+        const customer = await stripe.customers.create({
+          email: user.email!,
+          metadata: {
+            supabase_user_id: user.id,
+          },
+        });
+        customerId = customer.id;
+        console.log("Created new Stripe customer:", customerId);
+
+        // Update the mapping in database
+        await createUserStripeMapping(user.id, customerId);
+        console.log("Updated user-stripe mapping in database");
+      }
     } else {
       // Create new Stripe customer
       const customer = await stripe.customers.create({
