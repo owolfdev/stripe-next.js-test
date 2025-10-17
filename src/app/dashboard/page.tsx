@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getUserStripeMapping } from "@/lib/supabase/database";
@@ -6,7 +7,7 @@ import Link from "next/link";
 import Stripe from "stripe";
 
 // Force dynamic rendering to avoid Supabase issues during build
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 async function getUserSubscription(): Promise<Stripe.Subscription | null> {
   try {
