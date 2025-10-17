@@ -39,6 +39,13 @@ export async function POST(request: NextRequest) {
         try {
           // Get the customer from Stripe to find the Supabase user ID
           const customer = await stripe.customers.retrieve(session.customer as string);
+          
+          // Check if customer is deleted
+          if (customer.deleted) {
+            console.log("Customer is deleted, skipping mapping creation");
+            return;
+          }
+          
           const supabaseUserId = customer.metadata?.supabase_user_id;
           
           if (supabaseUserId) {

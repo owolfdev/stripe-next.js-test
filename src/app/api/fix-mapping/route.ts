@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createUserStripeMapping } from "@/lib/supabase/database";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get the authenticated user
     const supabase = await createClient();
