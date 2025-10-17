@@ -10,6 +10,13 @@ import {
 export async function POST(request: NextRequest) {
   try {
     console.log("Creating checkout session...");
+    console.log("Environment check:", {
+      hasStripeSecret: !!process.env.STRIPE_SECRET_KEY,
+      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasSupabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      nodeEnv: process.env.NODE_ENV
+    });
+    
     const { priceId } = await request.json();
     console.log("Price ID:", priceId);
 
