@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { getUserStripeMapping } from "@/lib/supabase/database";
 import UpgradeButton from "@/components/UpgradeButton";
-import { config } from "@/lib/config";
 import {
   getCurrentProductConfig,
   shouldShowProduct,
@@ -23,6 +22,7 @@ async function getCurrentSubscription(userId: string) {
       customer: mapping.stripe_customer_id,
       status: "active",
       limit: 1,
+      expand: ["data.items.data.price.product"], // Expand to get product details
     });
 
     return subscriptions.data.length > 0 ? subscriptions.data[0] : null;
@@ -93,6 +93,8 @@ export default async function UpgradePage() {
   ]);
 
   const currentPriceId = currentSubscription?.items.data[0]?.price.id;
+  const currentPrice = currentSubscription?.items.data[0]?.price;
+  const currentProduct = currentPrice?.product as Stripe.Product;
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -106,27 +108,58 @@ export default async function UpgradePage() {
           </p>
         </div>
 
-        {currentSubscription && (
+        {currentSubscription ? (
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               Current Subscription
             </h2>
-            <div className="flex items-center justify-between">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-lg font-medium text-gray-900">
-                  {currentSubscription.items.data[0]?.price.nickname || "Current Plan"}
+                <p className="text-lg font-medium text-gray-900 mb-2">
+                  {currentPrice?.nickname || currentProduct?.name || "Current Plan"}
                 </p>
-                <p className="text-gray-600">
+                <p className="text-gray-600 mb-2">
                   Status: <span className="text-green-600 font-medium">Active</span>
                 </p>
+                {currentPrice && (
+                  <p className="text-gray-600">
+                    Price: <span className="font-medium">
+                      {(currentPrice.unit_amount! / 100).toLocaleString()} {currentPrice.currency?.toUpperCase()} 
+                      /{currentPrice.recurring?.interval}
+                    </span>
+                  </p>
+                )}
+                <p className="text-gray-600">
+                  Next billing: <span className="font-medium">
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {new Date((currentSubscription as any).current_period_end * 1000).toLocaleDateString()}
+                  </span>
+                </p>
               </div>
-              <Link
-                href="/dashboard"
-                className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
-              >
-                Back to Dashboard
-              </Link>
+              <div className="flex items-center justify-end">
+                <Link
+                  href="/dashboard"
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
             </div>
+          </div>
+        ) : (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+            <h2 className="text-2xl font-bold text-yellow-800 mb-2">
+              No Active Subscription
+            </h2>
+            <p className="text-yellow-700 mb-4">
+              You don&apos;t have an active subscription. Choose a plan below to get started.
+            </p>
+            <Link
+              href="/dashboard"
+              className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            >
+              Back to Dashboard
+            </Link>
           </div>
         )}
 
