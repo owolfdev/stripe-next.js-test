@@ -49,7 +49,23 @@ export async function POST(request: NextRequest) {
     let customerId: string;
     const existingMapping = await getUserStripeMapping(user.id);
 
-    if (existingMapping) {
+    // In production, always create a new customer to avoid test/live mode conflicts
+    if (config.isProduction && existingMapping) {
+      console.log("Production mode: Creating new customer to avoid test/live conflicts");
+      // Create new Stripe customer
+      const customer = await stripe.customers.create({
+        email: user.email!,
+        metadata: {
+          supabase_user_id: user.id,
+        },
+      });
+      customerId = customer.id;
+      console.log("Created new Stripe customer:", customerId);
+
+      // Update the mapping in database
+      await createUserStripeMapping(user.id, customerId);
+      console.log("Updated user-stripe mapping in database");
+    } else if (existingMapping) {
       customerId = existingMapping.stripe_customer_id;
       console.log("Using existing Stripe customer:", customerId);
       
