@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware() {
-  // Temporarily disabled to test deployment
+export async function middleware(request: NextRequest) {
+  // Simplified middleware - just pass through without Supabase auth
   return NextResponse.next();
 }
 
