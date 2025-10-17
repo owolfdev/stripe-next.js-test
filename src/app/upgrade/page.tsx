@@ -11,19 +11,30 @@ import Stripe from "stripe";
 import Link from "next/link";
 
 // Force dynamic rendering to avoid Supabase issues during build
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 async function getCurrentSubscription(userId: string) {
   try {
+    console.log("getCurrentSubscription - User ID:", userId);
     const mapping = await getUserStripeMapping(userId);
-    if (!mapping) return null;
+    console.log("getCurrentSubscription - Mapping:", mapping);
+    
+    if (!mapping) {
+      console.log("getCurrentSubscription - No mapping found");
+      return null;
+    }
 
+    console.log("getCurrentSubscription - Customer ID:", mapping.stripe_customer_id);
+    
     const subscriptions = await stripe.subscriptions.list({
       customer: mapping.stripe_customer_id,
       status: "active",
       limit: 1,
       expand: ["data.items.data.price.product"], // Expand to get product details
     });
+
+    console.log("getCurrentSubscription - Found subscriptions:", subscriptions.data.length);
+    console.log("getCurrentSubscription - Subscription data:", subscriptions.data);
 
     return subscriptions.data.length > 0 ? subscriptions.data[0] : null;
   } catch (error) {
@@ -87,14 +98,23 @@ export default async function UpgradePage() {
     );
   }
 
+  console.log("UpgradePage - User:", { id: user.id, email: user.email });
+  
   const [currentSubscription, prices] = await Promise.all([
     getCurrentSubscription(user.id),
     getPrices(),
   ]);
 
+  console.log("UpgradePage - Current subscription:", currentSubscription);
+  console.log("UpgradePage - Prices:", prices.length);
+
   const currentPriceId = currentSubscription?.items.data[0]?.price.id;
   const currentPrice = currentSubscription?.items.data[0]?.price;
   const currentProduct = currentPrice?.product as Stripe.Product;
+  
+  console.log("UpgradePage - Current price ID:", currentPriceId);
+  console.log("UpgradePage - Current price:", currentPrice);
+  console.log("UpgradePage - Current product:", currentProduct);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -116,23 +136,31 @@ export default async function UpgradePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-lg font-medium text-gray-900 mb-2">
-                  {currentPrice?.nickname || currentProduct?.name || "Current Plan"}
+                  {currentPrice?.nickname ||
+                    currentProduct?.name ||
+                    "Current Plan"}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  Status: <span className="text-green-600 font-medium">Active</span>
+                  Status:{" "}
+                  <span className="text-green-600 font-medium">Active</span>
                 </p>
                 {currentPrice && (
                   <p className="text-gray-600">
-                    Price: <span className="font-medium">
-                      {(currentPrice.unit_amount! / 100).toLocaleString()} {currentPrice.currency?.toUpperCase()} 
-                      /{currentPrice.recurring?.interval}
+                    Price:{" "}
+                    <span className="font-medium">
+                      {(currentPrice.unit_amount! / 100).toLocaleString()}{" "}
+                      {currentPrice.currency?.toUpperCase()}/
+                      {currentPrice.recurring?.interval}
                     </span>
                   </p>
                 )}
                 <p className="text-gray-600">
-                  Next billing: <span className="font-medium">
+                  Next billing:{" "}
+                  <span className="font-medium">
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {new Date((currentSubscription as any).current_period_end * 1000).toLocaleDateString()}
+                    {new Date(
+                      (currentSubscription as any).current_period_end * 1000
+                    ).toLocaleDateString()}
                   </span>
                 </p>
               </div>
@@ -152,7 +180,8 @@ export default async function UpgradePage() {
               No Active Subscription
             </h2>
             <p className="text-yellow-700 mb-4">
-              You don&apos;t have an active subscription. Choose a plan below to get started.
+              You don&apos;t have an active subscription. Choose a plan below to
+              get started.
             </p>
             <Link
               href="/dashboard"
@@ -180,12 +209,12 @@ export default async function UpgradePage() {
                     Most Popular
                   </div>
                 )}
-                
+
                 <div className="p-6">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {price.nickname || product.name}
                   </h3>
-                  
+
                   <div className="mb-4">
                     <span className="text-4xl font-bold text-gray-900">
                       {(price.unit_amount! / 100).toLocaleString()}
@@ -197,32 +226,72 @@ export default async function UpgradePage() {
 
                   <ul className="space-y-2 mb-6">
                     <li className="flex items-center text-gray-600">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-green-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Unlimited access to premium features
                     </li>
                     <li className="flex items-center text-gray-600">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-green-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Priority customer support
                     </li>
                     <li className="flex items-center text-gray-600">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-green-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Advanced analytics dashboard
                     </li>
                     <li className="flex items-center text-gray-600">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-green-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Custom integrations
                     </li>
                     <li className="flex items-center text-gray-600">
-                      <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-green-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       API access with higher limits
                     </li>
@@ -232,7 +301,9 @@ export default async function UpgradePage() {
                     priceId={price.id}
                     currentPriceId={currentPriceId}
                     title={price.nickname || product.name}
-                    price={`${(price.unit_amount! / 100).toLocaleString()}/${price.recurring?.interval}`}
+                    price={`${(price.unit_amount! / 100).toLocaleString()}/${
+                      price.recurring?.interval
+                    }`}
                     description={[
                       "Unlimited access to premium features",
                       "Priority customer support",
