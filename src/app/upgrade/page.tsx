@@ -227,8 +227,8 @@ export default async function UpgradePage() {
                 <p className="text-gray-600">
                   Next billing:{" "}
                   <span className="font-medium">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                     {(() => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const endDate = (currentSubscription as any)
                         .current_period_end;
                       if (endDate) {

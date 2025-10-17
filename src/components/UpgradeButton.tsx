@@ -15,10 +15,6 @@ interface UpgradeButtonProps {
 export default function UpgradeButton({
   priceId,
   currentPriceId,
-  title,
-  price,
-  description,
-  popular = false,
   onUpgradeComplete,
 }: UpgradeButtonProps) {
   const [loading, setLoading] = useState(false);

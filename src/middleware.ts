@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function middleware() {
   // Simplified middleware - just pass through without Supabase auth
   return NextResponse.next();
 }

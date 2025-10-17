@@ -30,12 +30,12 @@ export async function migrateGuestCustomer(
   guestCustomerId: string,
   userEmail: string,
   userId: string
-): Promise<{ newCustomerId: string; migratedData: any }> {
+): Promise<{ newCustomerId: string; migratedData: Record<string, any> }> {
   try {
     // Retrieve the guest customer to get any useful data
     const guestCustomer = await stripe.customers.retrieve(guestCustomerId);
     
-    let migratedData: any = {};
+    let migratedData: Record<string, any> = {};
     
     // If it's not deleted, we can potentially migrate some data
     if (!('deleted' in guestCustomer) || !guestCustomer.deleted) {
@@ -64,9 +64,9 @@ export async function migrateGuestCustomer(
       newCustomerId: newCustomer.id,
       migratedData,
     };
-  } catch (error) {
-    console.error("Error migrating guest customer:", error);
-    throw error;
+  } catch (err) {
+    console.error("Error migrating guest customer:", err);
+    throw err;
   }
 }
 

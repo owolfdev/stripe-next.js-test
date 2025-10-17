@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserStripeMapping } from "@/lib/supabase/database";
 import { stripe } from "@/lib/stripe";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get the authenticated user
     const supabase = await createClient();
