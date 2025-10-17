@@ -102,7 +102,7 @@ export default async function Home() {
               Welcome Back!
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              You're already subscribed to our service. Manage your subscription or explore additional features.
+              You&apos;re already subscribed to our service. Manage your subscription or explore additional features.
             </p>
           </div>
 
