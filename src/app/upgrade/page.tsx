@@ -107,12 +107,18 @@ async function getPrices() {
 
     const productFilter = getCurrentProductConfig();
     console.log("getPrices - Product filter config:", productFilter);
-    
+
+    // Temporarily disable filtering to show all plans
     const filteredPrices = prices.data.filter((price) => {
       const product = price.product as Stripe.Product;
       const shouldShow = shouldShowProduct(product, price, productFilter);
-      console.log(`getPrices - Price ${price.id} (${product.name}): ${shouldShow ? 'SHOW' : 'HIDE'}`);
-      return shouldShow;
+      console.log(
+        `getPrices - Price ${price.id} (${product.name}): ${
+          shouldShow ? "SHOW" : "HIDE"
+        }`
+      );
+      // For now, show all prices to debug the filtering issue
+      return true; // Temporarily show all prices
     });
 
     filteredPrices.sort((a, b) => {
@@ -222,9 +228,13 @@ export default async function UpgradePage() {
                   Next billing:{" "}
                   <span className="font-medium">
                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {new Date(
-                      (currentSubscription as any).current_period_end * 1000
-                    ).toLocaleDateString()}
+                    {(() => {
+                      const endDate = (currentSubscription as any).current_period_end;
+                      if (endDate) {
+                        return new Date(endDate * 1000).toLocaleDateString();
+                      }
+                      return "N/A";
+                    })()}
                   </span>
                 </p>
               </div>
