@@ -37,6 +37,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Error creating portal session:", error);
+    
+    // Check if it's a specific Stripe error
+    if (error instanceof Error) {
+      if (error.message.includes('billing portal') || error.message.includes('portal')) {
+        return NextResponse.json(
+          { error: "Customer Portal is not enabled for this account. Please contact support." },
+          { status: 400 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       { error: "Failed to create portal session" },
       { status: 500 }

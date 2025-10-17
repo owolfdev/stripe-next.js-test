@@ -235,9 +235,12 @@ export default async function DashboardPage() {
                     Download Invoice
                   </button>
 
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                  <Link 
+                    href="/" 
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors text-center block"
+                  >
                     Upgrade Plan
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

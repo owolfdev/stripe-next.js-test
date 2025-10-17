@@ -28,14 +28,16 @@ export default function ManageSubscriptionButton({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create portal session");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create portal session");
       }
 
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
       console.error("Error managing subscription:", error);
-      alert("Failed to open customer portal. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to open customer portal. Please try again.";
+      alert(errorMessage);
     }
   };
 
