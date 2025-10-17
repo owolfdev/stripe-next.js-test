@@ -40,12 +40,34 @@ async function getUserSubscription(): Promise<Stripe.Subscription | null> {
     );
 
     // Get user's subscriptions from Stripe
-    const subscriptions = await stripe.subscriptions.list({
-      customer: mapping.stripe_customer_id,
-      limit: 1,
-      expand: ["data.customer"],
-      status: "all", // Include all statuses
-    });
+    let subscriptions;
+    try {
+      // First, verify the customer exists and is manageable
+      const customer = await stripe.customers.retrieve(mapping.stripe_customer_id);
+      
+      // Check if this is a Guest customer
+      if ('deleted' in customer && customer.deleted) {
+        console.log("Customer is deleted, no subscriptions available");
+        return null;
+      }
+      
+      // Check if customer is a Guest (limited functionality)
+      if (!customer.metadata || !customer.metadata.supabase_user_id) {
+        console.log("Customer appears to be a Guest customer, limited functionality");
+        // Guest customers might have subscriptions but limited metadata
+      }
+      
+      subscriptions = await stripe.subscriptions.list({
+        customer: mapping.stripe_customer_id,
+        limit: 1,
+        expand: ["data.customer"],
+        status: "all", // Include all statuses
+      });
+    } catch (error) {
+      console.log("Error retrieving customer or subscriptions:", error);
+      console.log("This might be a Guest customer or deleted customer");
+      return null;
+    }
 
     console.log(
       `Found ${subscriptions.data.length} subscriptions for user ${user.email}`

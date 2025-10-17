@@ -6,6 +6,7 @@ import {
   getUserStripeMapping,
   createUserStripeMapping,
 } from "@/lib/supabase/database";
+import { ensureProperCustomer } from "@/lib/stripe-customer-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,64 +46,26 @@ export async function POST(request: NextRequest) {
 
     console.log("User authenticated:", user.email);
 
-    // Get or create Stripe customer
-    let customerId: string;
+    // Get or create Stripe customer (handling Guest customers automatically)
     const existingMapping = await getUserStripeMapping(user.id);
-
-    // In production, always create a new customer to avoid test/live mode conflicts
-    if (config.isProduction && existingMapping) {
-      console.log("Production mode: Creating new customer to avoid test/live conflicts");
-      // Create new Stripe customer
-      const customer = await stripe.customers.create({
-        email: user.email!,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      });
-      customerId = customer.id;
-      console.log("Created new Stripe customer:", customerId);
-
-      // Update the mapping in database
+    const existingCustomerId = existingMapping?.stripe_customer_id || null;
+    
+    console.log("Existing customer ID:", existingCustomerId);
+    
+    // Ensure we have a proper customer (not a Guest customer)
+    const customerId = await ensureProperCustomer(
+      existingCustomerId,
+      user.email!,
+      user.id
+    );
+    
+    console.log("Final customer ID:", customerId);
+    
+    // If we got a new customer ID (different from existing), update the mapping
+    if (existingCustomerId !== customerId) {
+      console.log("Customer ID changed, updating database mapping");
       await createUserStripeMapping(user.id, customerId);
       console.log("Updated user-stripe mapping in database");
-    } else if (existingMapping) {
-      customerId = existingMapping.stripe_customer_id;
-      console.log("Using existing Stripe customer:", customerId);
-      
-      // Verify the customer exists in the current Stripe mode (test/live)
-      try {
-        await stripe.customers.retrieve(customerId);
-        console.log("Customer verified in current Stripe mode");
-        } catch {
-          console.log("Customer doesn't exist in current Stripe mode, creating new one");
-        // Customer doesn't exist in current mode, create a new one
-        const customer = await stripe.customers.create({
-          email: user.email!,
-          metadata: {
-            supabase_user_id: user.id,
-          },
-        });
-        customerId = customer.id;
-        console.log("Created new Stripe customer:", customerId);
-
-        // Update the mapping in database
-        await createUserStripeMapping(user.id, customerId);
-        console.log("Updated user-stripe mapping in database");
-      }
-    } else {
-      // Create new Stripe customer
-      const customer = await stripe.customers.create({
-        email: user.email!,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      });
-      customerId = customer.id;
-      console.log("Created new Stripe customer:", customerId);
-
-      // Store the mapping in database
-      await createUserStripeMapping(user.id, customerId);
-      console.log("Stored user-stripe mapping in database");
     }
 
     console.log("Stripe secret key available:", !!config.stripe.secretKey);
