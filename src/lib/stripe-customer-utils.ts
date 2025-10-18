@@ -50,12 +50,14 @@ export async function migrateGuestCustomer(
     // Create a new proper customer
     const newCustomer = await stripe.customers.create({
       email: userEmail,
-      name: migratedData.name || userEmail.split('@')[0], // Use name from migrated data or email prefix
+      name: (typeof migratedData.name === 'string' ? migratedData.name : undefined) || userEmail.split('@')[0], // Use name from migrated data or email prefix
       metadata: {
         supabase_user_id: userId,
         migrated_from_guest: guestCustomerId,
       },
-      ...migratedData, // Include any migrated data
+      // Only include safe properties from migrated data
+      ...(typeof migratedData.phone === 'string' ? { phone: migratedData.phone } : {}),
+      ...(typeof migratedData.address === 'object' && migratedData.address !== null ? { address: migratedData.address } : {}),
     });
     
     console.log(`Migrated guest customer ${guestCustomerId} to new customer ${newCustomer.id}`);
