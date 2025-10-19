@@ -56,6 +56,14 @@ export async function updateUserStripeMapping(
 ): Promise<UserStripeMapping | null> {
   const supabase = await createClient();
 
+  // First, remove any existing mapping for this stripe customer ID
+  // (in case it's mapped to a different user)
+  await supabase
+    .from("stripe_test_user_stripe_mapping")
+    .delete()
+    .eq("stripe_customer_id", stripeCustomerId);
+
+  // Now update the user's mapping
   const { data, error } = await supabase
     .from("stripe_test_user_stripe_mapping")
     .update({ stripe_customer_id: stripeCustomerId })
