@@ -10,8 +10,8 @@ interface DonateButtonProps {
 }
 
 export default function DonateButton({
-  amount = 5,
-  currency = "usd",
+  amount = 50,
+  currency = "thb",
   label = "Donate",
   className = "",
 }: DonateButtonProps) {
@@ -22,7 +22,7 @@ export default function DonateButton({
 
   const handleDonate = async () => {
     const donateAmount = parseFloat(customAmount);
-    
+
     if (!donateAmount || donateAmount <= 0) {
       alert("Please enter a valid amount");
       return;
@@ -85,21 +85,21 @@ export default function DonateButton({
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Make a Donation
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Amount ({currency.toUpperCase()})
                 </label>
                 <div className="flex space-x-2 mb-3">
-                  {[5, 10, 25, 50].map((quickAmount) => (
+                  {[20, 50, 100, 200].map((quickAmount) => (
                     <button
                       key={quickAmount}
                       onClick={() => handleQuickDonate(quickAmount)}
                       disabled={loading}
                       className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-sm transition-colors disabled:opacity-50"
                     >
-                      ${quickAmount}
+                      ฿{quickAmount}
                     </button>
                   ))}
                 </div>
@@ -134,7 +134,7 @@ export default function DonateButton({
                 disabled={loading}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:opacity-50"
               >
-                {loading ? "Processing..." : `Donate $${customAmount}`}
+                {loading ? "Processing..." : `Donate ฿${customAmount}`}
               </button>
               <button
                 onClick={() => setShowModal(false)}

@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, currency = "usd", email } = await request.json();
+    const { amount, currency = "thb", email } = await request.json();
 
     if (!amount || amount <= 0) {
       return NextResponse.json(
@@ -29,8 +29,12 @@ export async function POST(request: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}`,
+      success_url: `${
+        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+      }/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${
+        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+      }`,
       metadata: {
         type: "donation",
         email: email || "anonymous",
