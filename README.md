@@ -1,5 +1,7 @@
 # Stripe Subscription App with Supabase Auth
 
+test
+
 A comprehensive Next.js 15 application demonstrating Stripe subscription integration with Supabase authentication. This app showcases how to build a complete subscription-based SaaS application with user management, payment processing, and subscription lifecycle management.
 
 ## 🏗️ Architecture Overview

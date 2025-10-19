@@ -66,8 +66,10 @@ export async function GET(request: NextRequest) {
 
     // Sort by creation date (newest first)
     customerSummaries.sort((a, b) => {
-      if (a.created && b.created) {
-        return b.created - a.created;
+      if ("createdAt" in a && "createdAt" in b && a.createdAt && b.createdAt) {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       }
       return 0;
     });
@@ -78,16 +80,19 @@ export async function GET(request: NextRequest) {
         return { ...customer, recommendation: "ERROR" };
       }
 
-      if (customer.shouldKeep) {
-        return { ...customer, recommendation: "KEEP" };
-      }
+      // Type guard to ensure we have the full customer object
+      if ("shouldKeep" in customer && "canDelete" in customer) {
+        if (customer.shouldKeep) {
+          return { ...customer, recommendation: "KEEP" };
+        }
 
-      if (customer.canDelete && index > 0) {
-        return { ...customer, recommendation: "DELETE" };
-      }
+        if (customer.canDelete && index > 0) {
+          return { ...customer, recommendation: "DELETE" };
+        }
 
-      if (customer.canDelete && index === 0 && customers.length > 1) {
-        return { ...customer, recommendation: "DELETE" };
+        if (customer.canDelete && index === 0 && customers.length > 1) {
+          return { ...customer, recommendation: "DELETE" };
+        }
       }
 
       return { ...customer, recommendation: "KEEP" };

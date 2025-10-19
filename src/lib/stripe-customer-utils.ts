@@ -255,7 +255,7 @@ export async function getCustomerSummary(customerId: string): Promise<{
     return {
       id: customer.id,
       email: customer.email,
-      name: customer.name,
+      name: customer.name || null,
       created: customer.created,
       hasSubscriptions: subscriptions.data.length > 0,
       hasPaymentMethods: paymentMethods.data.length > 0,
