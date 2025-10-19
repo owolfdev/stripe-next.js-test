@@ -3,7 +3,10 @@
 import { useState } from "react";
 
 export default function FixMappingPage() {
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    error?: string;
+    [key: string]: unknown;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fixMapping = async () => {
@@ -14,7 +17,7 @@ export default function FixMappingPage() {
       });
       const data = await response.json();
       setResult(data);
-    } catch (error) {
+    } catch {
       setResult({ error: "Failed to fix mapping" });
     }
     setLoading(false);
@@ -28,7 +31,7 @@ export default function FixMappingPage() {
       });
       const data = await response.json();
       setResult(data);
-    } catch (error) {
+    } catch {
       setResult({ error: "Failed to force fix mapping" });
     }
     setLoading(false);
@@ -40,7 +43,7 @@ export default function FixMappingPage() {
       const response = await fetch("/api/debug-user-mapping");
       const data = await response.json();
       setResult(data);
-    } catch (error) {
+    } catch {
       setResult({ error: "Failed to debug mapping" });
     }
     setLoading(false);
