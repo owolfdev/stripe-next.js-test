@@ -58,8 +58,12 @@ export async function POST() {
 
       if (createError) {
         console.error("Error creating mapping:", createError);
+        const errorMessage =
+          createError instanceof Error
+            ? createError.message
+            : "Unknown error occurred";
         return NextResponse.json(
-          { error: `Failed to create mapping: ${createError.message}` },
+          { error: `Failed to create mapping: ${errorMessage}` },
           { status: 500 }
         );
       }
@@ -84,10 +88,11 @@ export async function POST() {
     });
   } catch (error) {
     console.error("Error fixing mapping:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     return NextResponse.json(
-      { error: `Failed to fix mapping: ${error.message}` },
+      { error: `Failed to fix mapping: ${errorMessage}` },
       { status: 500 }
     );
   }
 }
-
