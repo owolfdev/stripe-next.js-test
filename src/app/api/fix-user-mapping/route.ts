@@ -84,8 +84,10 @@ export async function POST() {
     }
   } catch (error) {
     console.error("Error creating mapping:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
     return NextResponse.json(
-      { error: `Failed to create mapping: ${error.message}` },
+      { error: `Failed to create mapping: ${errorMessage}` },
       { status: 500 }
     );
   }
